@@ -8,7 +8,7 @@ export const UI_PATH = path.join(
 export const PLAYER_SPRITESHEET_PATH = path.join(
   'assets',
   'image',
-  'Sunny-land-files',
+  'game-scene',
   'spritesheets'
 )
 
@@ -58,4 +58,11 @@ export const SPRITESHEET_GAME_PATH = path.join(
   'image',
   'game-scene',
   'spritesheets'
+)
+
+export const TEXT_GAME_PATH = path.join(
+  'assets',
+  'image',
+  'game-scene',
+  'npc_text'
 )

@@ -1,14 +1,4 @@
 import Phaser from 'phaser';
-import path from 'path';
-import {
-  FOREGROUND_TEMPLE_PATH,
-  BACKGROUND_GAME_PATH,
-  COMPONENT_GAME_PATH,
-  PLATFORM_GAME_PATH,
-  SPRITESHEET_GAME_PATH,
-  PLAYER_SPRITESHEET_PATH,
-  UI_PATH,
-} from '../utils/mapPath';
 import {
   SKY_DEPTH,
   BACKGROUND_DEPTH,
@@ -17,11 +7,29 @@ import {
   PLAYER_DEPTH,
   FOREGROUND_DEPTH,
 } from '../utils/mapDepth';
-
 import { setWorldBoundsAndCamera } from '../utils/setWorldAndCameraBound';
-
 import playerMoveTemple from '../utils/playerMoveTemple';
 import { OBJECT_SCROLL } from '../utils/mapObjectScroll';
+import {
+  shallowWater,
+  handleShutdown,
+  playerDrown,
+} from '../utils/event/drown';
+import {
+  setInput,
+  createInteractInput,
+  handleInteractiveBtn,
+} from '../utils/interactUtils';
+import { updateTextOpacity } from '../utils/event/updateTextOpacity'; // ! new func
+
+// ! test new class for collect item
+import {
+  CND_TaskManager,
+  CND_Task,
+  MilkItem,
+  Target,
+  OverlapObject,
+} from '../utils/event/TaskManager';
 
 const isMobile = /mobile/i.test(navigator.userAgent);
 const tablet = window.innerWidth < 1280;
@@ -39,142 +47,41 @@ let camera;
 //interactive
 let milkShop;
 let house;
-let gate;
-let milk1;
 let sign;
+let gate;
+let milk;
+let sakuraTree;
+let shallow_water;
+
+//npc // ! must modify to new structure
+let npc1;
+let npc2;
 //control flow
 let left;
 let right;
 let up;
+let interactKey; // ! add this for another scene too
+const windowHeight = window.innerHeight > 720 ? 720 : window.innerHeight; // ! add this for another scene too
+let interactButton; // ! add this for another scene too
 let isLeftPressed = false;
 let isRightPressed = false;
 let isUpPressed = false;
+
+// * new class for collect item
+/**
+ * @type {CND_Task}
+ */
+let CND_Milk_Task;
+/**
+ * @type {CND_Task}
+ */
+let ToGate_Task;
 
 class Delivery extends Phaser.Scene {
   constructor() {
     super({
       key: 'Delivery',
     });
-  }
-
-  loadBackground() {
-    this.load.image(
-      'background',
-      path.join(BACKGROUND_GAME_PATH, 'background-pink.png')
-    );
-    this.load.image(
-      'clound-layer1',
-      path.join(BACKGROUND_GAME_PATH, 'bg-pink-layer1.png')
-    );
-    this.load.image(
-      'clound-layer2',
-      path.join(BACKGROUND_GAME_PATH, 'bg-pink-layer2.png')
-    );
-  }
-  loadPlatforms() {
-    this.load.image('platform', path.join(PLATFORM_GAME_PATH, 'platform.png'));
-    this.load.image(
-      'tile-platfrom',
-      path.join(PLATFORM_GAME_PATH, 'tile-platform.png')
-    );
-    this.load.image(
-      'platform-long1',
-      path.join(PLATFORM_GAME_PATH, 'platform-long1.png')
-    );
-    this.load.image(
-      'platform-long2',
-      path.join(PLATFORM_GAME_PATH, 'platform-long2.png')
-    );
-    this.load.image('ground', path.join(PLATFORM_GAME_PATH, 'ground.png'));
-    this.load.image(
-      'ground-edge',
-      path.join(PLATFORM_GAME_PATH, 'ground-edge.png')
-    );
-    this.load.image(
-      'ground-main',
-      path.join(PLATFORM_GAME_PATH, 'ground-main.png')
-    );
-  }
-  loadMainComponents() {
-    this.load.image(
-      'milk-shop',
-      path.join(COMPONENT_GAME_PATH, 'milk-shop.png')
-    );
-    this.load.image('house', path.join(COMPONENT_GAME_PATH, 'house.png'));
-    this.load.image('milk', path.join(COMPONENT_GAME_PATH, 'milk.png'));
-    this.load.image('gate', path.join(COMPONENT_GAME_PATH, 'gate.png'));
-    this.load.image(
-      'gate-active',
-      path.join(COMPONENT_GAME_PATH, 'gate-active.png')
-    );
-    this.load.sign = this.load.image(
-      'sign',
-      path.join(COMPONENT_GAME_PATH, 'sign.png')
-    );
-  }
-  loadComponents() {
-    this.load.image(
-      'sakura-tree',
-      path.join(COMPONENT_GAME_PATH, 'Sakura tree.png')
-    );
-    this.load.image(
-      'small-sign',
-      path.join(COMPONENT_GAME_PATH, 'small-sign.png')
-    );
-    this.load.image(
-      'statue-stone',
-      path.join(COMPONENT_GAME_PATH, 'statue-stone.png')
-    );
-    this.load.image(
-      'stone-wall',
-      path.join(COMPONENT_GAME_PATH, 'stone-wall.png')
-    );
-    this.load.image('stone', path.join(COMPONENT_GAME_PATH, 'stone.png'));
-    this.load.image('bench', path.join(COMPONENT_GAME_PATH, 'bench.png'));
-    this.load.image('lantern', path.join(COMPONENT_GAME_PATH, 'lantern.png'));
-    this.load.image('grass', path.join(COMPONENT_GAME_PATH, 'grass.png'));
-    this.load.image('vine', path.join(COMPONENT_GAME_PATH, 'vine.png'));
-  }
-  loadForeground() {
-    this.load.image('water', path.join(FOREGROUND_TEMPLE_PATH, 'Water.png'));
-    this.load.image(
-      'shadow-platform',
-      path.join(COMPONENT_GAME_PATH, 'shadow-short.png')
-    );
-    this.load.image(
-      'shadow-platform-long2',
-      path.join(COMPONENT_GAME_PATH, 'shadow-long2.png')
-    );
-    this.load.image(
-      'shadow-platform-long1',
-      path.join(COMPONENT_GAME_PATH, 'shadows.png')
-    );
-  }
-  loadPlayer() {
-    this.load.spritesheet(
-      'player',
-      path.join(PLAYER_SPRITESHEET_PATH, 'oposum.png'),
-      {
-        frameWidth: 36,
-        frameHeight: 28,
-      }
-    );
-  }
-  loadUI() {
-    //load button
-    this.load.image('left', path.join(UI_PATH, 'left.png'));
-    this.load.image('right', path.join(UI_PATH, 'right.png'));
-    this.load.image('up', path.join(UI_PATH, 'up.png'));
-  }
-
-  preload() {
-    this.loadBackground();
-    this.loadForeground();
-    this.loadPlatforms();
-    this.loadMainComponents();
-    this.loadComponents();
-    this.loadPlayer();
-    this.loadUI();
   }
 
   setDeviceSpecificControls(height, width, camera) {
@@ -206,11 +113,13 @@ class Delivery extends Phaser.Scene {
 
       //get screen width and height
       let screenWidth = window.innerWidth;
-      let screenHeight = window.innerHeight;
+      let screenHeight;
 
       //device check
       if (isMobile) {
         //mobile
+        // ! set new pos for mobile
+        screenHeight = windowHeight;
         if (screenHeight > 720) screenHeight = 720;
         console.log('Mobile view');
         console.log(`Screen Width: ${screenWidth}px`);
@@ -247,6 +156,15 @@ class Delivery extends Phaser.Scene {
           .setAlpha(0.7)
           .setScrollFactor(0);
 
+        // ! create interact btn for mobile
+        interactButton = createInteractInput(
+          this.input.keyboard,
+          'mobile',
+          this.physics,
+          [screenWidth / 2 + screenWidth / 3.5, screenHeight / 1.2],
+          'inBtn'
+        );
+
         //Implement mobile camera bounds and viewport
         camera.setViewport(
           width / 2 - screenWidth / 2,
@@ -257,6 +175,8 @@ class Delivery extends Phaser.Scene {
         camera.setZoom(1);
       } else if (tablet) {
         //tablet
+        // ! set new pos for tablet
+        screenHeight = windowHeight;
         if (screenHeight > 720) screenHeight = 720;
         console.log('Tablet view');
         console.log(`Screen Width: ${screenWidth}px`);
@@ -297,6 +217,14 @@ class Delivery extends Phaser.Scene {
           .setAlpha(0.7)
           .setScrollFactor(0);
 
+        // ! create interact btn for tablet
+        interactButton = createInteractInput(
+          this.input.keyboard,
+          'tablet',
+          this.physics,
+          [screenWidth - screenWidth / 8, screenHeight / 1.2],
+          'inBtn'
+        );
         //Implement tablet camera bounds and viewport
         camera.setViewport(
           width / 2 - screenWidth / 2,
@@ -309,6 +237,8 @@ class Delivery extends Phaser.Scene {
       //default (desktop)
       console.log('desktop');
       camera.setViewport(0, 0, width, height);
+      // ! add interaction key
+      interactKey = createInteractInput(this.input.keyboard, 'desktop');
     }
   }
   addBackgroundElements(mapWidth, mapHeight) {
@@ -316,21 +246,21 @@ class Delivery extends Phaser.Scene {
     let bg = this.add
       .tileSprite(0, 0, mapWidth, mapHeight, 'background')
       .setOrigin(0, 0)
-      .setScale(1.7)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD - 0.1);
     //front clound
     cloundLayer1 = this.add
       .tileSprite(0, 0, mapWidth, mapHeight, 'clound-layer2')
       .setOrigin(0, 0)
-      .setScale(1.7)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD);
     // mid clound
     cloundLayer2 = this.add
       .tileSprite(0, 0, mapWidth, mapHeight, 'clound-layer1')
       .setOrigin(0, 0)
-      .setScale(1.7)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD2);
 
@@ -338,13 +268,23 @@ class Delivery extends Phaser.Scene {
     backgrounds.add(cloundLayer2);
     backgrounds.add(cloundLayer1);
   }
-  //water shadows
+  // water and shadows
   addForeground(mapWidth, mapHeight) {
+    shallow_water = shallowWater(
+      this,
+      0,
+      mapHeight - 20,
+      mapWidth * 2,
+      200,
+      BACKGROUND_COMPONENT_DEPTH
+    );
+
+    this.physics.add.existing(shallow_water);
+
     water = this.add
-      .tileSprite(0, 520, mapWidth, 250, 'water')
+      .tileSprite(0, mapHeight - 200, mapWidth, 200, 'water')
       .setOrigin(0, 0)
       .setScale(1)
-      .setScrollFactor(OBJECT_SCROLL.PLAYER, 0)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
 
     //add shadows
@@ -354,17 +294,12 @@ class Delivery extends Phaser.Scene {
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
     this.add
-      .image(1530, mapHeight - 110, 'shadow-platform')
-      .setOrigin(0, 0)
-      .setScale(1)
-      .setDepth(BACKGROUND_COMPONENT_DEPTH);
-    this.add
       .image(1650, mapHeight - 80, 'shadow-platform-long1')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
     this.add
-      .image(2045, mapHeight - 80, 'shadow-platform')
+      .image(2110, mapHeight - 80, 'shadow-platform')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
@@ -379,7 +314,7 @@ class Delivery extends Phaser.Scene {
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
   }
-  //platforms
+  // platforms
   addPlatforms(floorHeight) {
     platforms = this.physics.add.staticGroup();
     let ground = this.add
@@ -389,26 +324,25 @@ class Delivery extends Phaser.Scene {
       .setDepth(MIDDLEGROUND_DEPTH);
 
     let platformSmall = this.add
-      .image(1368, 975, 'platform')
+      .image(1405, 1100, 'platform')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(MIDDLEGROUND_DEPTH);
 
     let platformVine = this.add
-      .image(1537, 778, 'platform')
+      .image(1355, 860, 'platform')
       .setOrigin(0, 0)
       .setScale(1)
-      .setSize(222, 74)
       .setDepth(MIDDLEGROUND_DEPTH);
 
     let platformStatue_long = this.add
-      .image(1627, 1143, 'platform-long1')
+      .image(1659, 1002, 'platform-long1')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(MIDDLEGROUND_DEPTH);
 
     let platformGlass = this.add
-      .image(2035, 967, 'platform')
+      .image(2124, 921, 'platform')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(MIDDLEGROUND_DEPTH);
@@ -439,8 +373,12 @@ class Delivery extends Phaser.Scene {
     platforms.add(platformHouse);
     platforms.add(platformGate);
     platforms.add(platformSakuraTree);
+    // Set collision boxes for each platform
+    platforms.children.iterate((child) => {
+      child.body.setSize(child.width, 20).setOffset(0, 0);
+    });
   }
-  //house, milk shop, milk, gate, sign
+  // house, milk shop, milk, gate, sign
   addMainComponents() {
     components = this.add.group();
     milkShop = this.add
@@ -453,49 +391,73 @@ class Delivery extends Phaser.Scene {
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH);
-    milk1 = this.add
-      .image(1102, 584, 'milk')
-      .setOrigin(0, 0)
-      .setScale(1)
-      .setDepth(MIDDLEGROUND_DEPTH);
-    gate = this.add
-      .image(3650, 787, 'gate')
-      .setOrigin(0, 0)
-      .setScale(1)
-      .setDepth(MIDDLEGROUND_DEPTH);
-    gate.flipX = true;
     sign = this.add
       .image(2447, 701, 'sign')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(MIDDLEGROUND_DEPTH);
 
+    milk = new MilkItem(
+      this.physics,
+      [1102, 595],
+      0.8,
+      MIDDLEGROUND_DEPTH,
+      150
+    );
+
+    gate = new OverlapObject(
+      this.physics,
+      'image',
+      [3650, 787],
+      'gate',
+      1,
+      MIDDLEGROUND_DEPTH,
+      90
+    );
+
     components.add(milkShop);
     components.add(house);
-    components.add(milk1);
-    components.add(gate);
-    components.add(sign);
+
+    // ! new class for collect item
+    // * create milk task
+    CND_Milk_Task = new CND_Task(this, [milk], {
+      itemKey: milk.textureKey,
+      qty: 1,
+      inventoryItemSize: milk.inventoryItemSize,
+    });
+
+    // * create to-gate task
+    ToGate_Task = new CND_Task(this, [gate], {
+      itemKey: gate.textureKey,
+      qty: 1,
+      inventoryItemSize: 90,
+      fst_posX: 50,
+      posY: 30,
+    });
+
+    CND_TaskManager.createInventoryItem(CND_Milk_Task);
   }
-  //prop
+  // prop
   addComponents() {
     //sakura milk shop
-    this.add
+    sakuraTree = this.add
       .image(141, 612, 'sakura-tree')
       .setOrigin(0, 0)
       .setScale(1)
-      .setDepth(BACKGROUND_COMPONENT_DEPTH - 1).flipX = true;
+      .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
+    sakuraTree.flipX = true;
     this.add
       .image(700, 266, 'sakura-tree')
       .setOrigin(0, 0)
       .setScale(0.7)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
     this.add
-      .image(1672, 1049, 'stone-wall')
+      .image(1704, 907, 'stone-wall')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
     this.add
-      .image(1949, 967, 'statue-stone')
+      .image(1950, 825, 'statue-stone')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
@@ -505,23 +467,23 @@ class Delivery extends Phaser.Scene {
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
     this.add
-      .image(1546, 725, 'stone')
+      .image(1377, 818, 'stone')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
     this.add
-      .image(1391, 853, 'lantern')
+      .image(1430, 978, 'lantern')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
     //add vine on platformVine
     this.add
-      .image(1620, 772, 'vine')
+      .image(1432, 855, 'vine')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(MIDDLEGROUND_DEPTH + 1);
     this.add
-      .image(2178, 940, 'grass')
+      .image(2210, 895, 'grass')
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(PLAYER_DEPTH + 1);
@@ -532,52 +494,168 @@ class Delivery extends Phaser.Scene {
       .setScale(1)
       .setDepth(BACKGROUND_COMPONENT_DEPTH - 1);
   }
-  //player and colider
+  // player and colider
   addPlayerAndColider(floorHeight) {
-    //player
+    // player
     player = this.physics.add
       .sprite(100, floorHeight - 150, 'player')
       .setCollideWorldBounds(true)
-      .setScale(3)
+      .setScale(0.3)
+      .setSize(180, 200)
       .setDepth(PLAYER_DEPTH);
+    player.setFrame(5);
 
     this.physics.add.collider(player, platforms);
   }
-  //animations
+  // npc
+  addNpc() {
+    npc1 = new Target(
+      { itemKey: milk.textureKey, qty: 0 },
+      this.physics,
+      'sprite',
+      [890, 1120],
+      'npc2',
+      0.2,
+      MIDDLEGROUND_DEPTH
+    );
+    npc2 = new Target(
+      { itemKey: milk.textureKey, qty: 1 },
+      this.physics,
+      'sprite',
+      [2770, 758 - 15],
+      'npc6',
+      0.2,
+      MIDDLEGROUND_DEPTH
+    );
+
+    npc1.gameObj.anims.play('idle_npc2', true);
+    npc2.gameObj.anims.play('idle_npc6', true);
+
+    npc1.gameObj.flipX = true;
+    npc2.gameObj.flipX = true;
+  }
+
+  // animations
   addAnimations() {
-    //animations for testing
+    // sprite sheet for npc1
     this.anims.create({
-      key: 'walk',
-      frames: this.anims.generateFrameNumbers('player', {
+      key: 'idle_npc6',
+      frames: this.anims.generateFrameNumbers('npc6', {
         start: 0,
-        end: 5,
+        end: 1,
       }),
-      frameRate: 10,
+      frameRate: 1,
       repeat: -1,
     });
 
-    // //water animation
-    // this.anims.create({
-    //   key: 'waterAnim',
-    //   frames: this.anims.generateFrameNumbers('water', {
-    //     start: 0,
-    //     end: 5,
-    //   }),
-    //   frameRate: 5.5,
-    //   repeat: -1,
-    // });
-
-    // //sakura animation
-    // this.anims.create({
-    //   key: 'sakura',
-    //   frames: this.anims.generateFrameNumbers('sakura', {
-    //     start: 0,
-    //     end: 20,
-    //   }),
-    //   frameRate: 8,
-    //   repeat: -1,
-    // });
+    // sprite sheet for npc2
+    this.anims.create({
+      key: 'idle_npc2',
+      frames: this.anims.generateFrameNumbers('npc2', {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 1,
+      repeat: -1,
+    });
   }
+
+  // message
+  addMessage() {
+    // * message for npc interaction
+    this.messageNpc1 = this.add
+      .image(1131, 993, 'message-n1')
+      .setOrigin(0, 0)
+      .setAlpha(0)
+      .setScale(1)
+      .setDepth(PLAYER_DEPTH);
+    this.messageNpc2 = this.add
+      .image(2522, 687, 'message-n2')
+      .setOrigin(0, 0)
+      .setAlpha(0)
+      .setScale(1)
+      .setDepth(PLAYER_DEPTH);
+
+    // * message require milk
+    this.requireNpc2 = this.add
+      .image(2628, 784, 'require1')
+      .setOrigin(0, 0)
+      .setAlpha(0)
+      .setScale(1)
+      .setDepth(PLAYER_DEPTH);
+  }
+
+  // * update item opacity
+  updateItemOpacity(item, destination) {
+    const playerX = player.x;
+    const playerY = player.y;
+    const destinationX = destination.x;
+    const destinationY = destination.y;
+
+    const distance = Phaser.Math.Distance.Between(
+      playerX,
+      playerY,
+      destinationX,
+      destinationY
+    );
+
+    const minOpacity = 0;
+    const maxOpacity = 1;
+
+    const maxDistance = 2000;
+
+    const opacity = Phaser.Math.Linear(
+      minOpacity,
+      maxOpacity,
+      Phaser.Math.Clamp(1 - distance / maxDistance, 0, 1)
+    );
+
+    item.setAlpha(opacity);
+  }
+
+  // * bind function to target
+  bindFnToTarget() {
+    npc1.gameObj.fn = () => {
+      // * blip the message (alpha 0 to 1 and 1 to 0) for 3 times
+      this.messageNpc1.setAlpha(1);
+      this.messageNpc1.y = 993;
+      this.tweens.add({
+        targets: this.messageNpc1,
+        y: this.messageNpc1.y - 10,
+        duration: 100,
+        ease: 'Linear',
+        repeat: 3,
+        yoyo: true,
+      });
+    };
+    npc2.gameObj.fn = () => {
+      this.requireNpc2.x = 2628;
+      this.tweens.add({
+        targets: this.requireNpc2,
+        x: this.requireNpc2.x - 10,
+        duration: 100,
+        ease: 'Linear',
+        repeat: 3,
+        yoyo: true,
+      });
+      CND_TaskManager.handleDeliverItem(
+        npc2,
+        [CND_Milk_Task, ToGate_Task],
+        this.tweens,
+        this.messageNpc2,
+        this.requireNpc2
+      );
+      if (CND_Milk_Task._completed) {
+        npc1.gameObj.destroy();
+        this.messageNpc1.destroy();
+      }
+    };
+  }
+
+  init() {
+    this.playerMoveTemple = playerMoveTemple;
+  }
+
   create() {
     //config
     const { width, height } = this.scale;
@@ -585,7 +663,7 @@ class Delivery extends Phaser.Scene {
     const mapWidth = width * 3;
     const mapHeight = height * 2;
 
-    //Dev scale 3840 * 1440
+    //!Dev scale 3840 * 1440
     // const mapWidth = width;
     // const mapHeight = height;
 
@@ -594,6 +672,8 @@ class Delivery extends Phaser.Scene {
     //binding function
     this.playerMoveTemple = playerMoveTemple;
     this.setWorldBoundsAndCamera = setWorldBoundsAndCamera;
+    this.updateTextOpacity = updateTextOpacity;
+    this.handleInteractiveBtn = handleInteractiveBtn; // ! new func
 
     //setting world and camera
     const returnCamera = this.setWorldBoundsAndCamera(
@@ -609,7 +689,7 @@ class Delivery extends Phaser.Scene {
     //background
     this.addBackgroundElements(mapWidth, mapHeight);
     //foreground
-    this.addForeground(mapWidth, mapHeight, floorHeight);
+    this.addForeground(mapWidth, mapHeight);
     //platforms
     this.addPlatforms(floorHeight);
     //main components
@@ -618,13 +698,81 @@ class Delivery extends Phaser.Scene {
     this.addComponents();
     //player and colider
     this.addPlayerAndColider(floorHeight);
+    //npc
+    this.addNpc();
+    //message
+    this.addMessage();
+
+    // * init the input
+    setInput(this.input);
+    // * bind target to interact btn
+    this.bindFnToTarget();
+    // * handle shutdown
+    handleShutdown(this);
   }
 
   update(delta, time) {
-    //testing movement
-    this.playerMoveTemple(player, 1000, false, false, null, null, null);
-    //camera follow player
+    // dev skip the scene
+    // this.scene.start('Delivery2'); // ! comment for working in event_handling branch
+
+    //player movement
+    if (isMobile || tablet) {
+      this.playerMoveTemple(
+        player,
+        500,
+        false,
+        true,
+        isLeftPressed,
+        isRightPressed,
+        isUpPressed
+      );
+    } else {
+      this.playerMoveTemple(player, 1000, false, false, null, null, null);
+    }
+
+    // camera follow player
     camera.startFollow(player);
+
+    // player drown
+    playerDrown(this, player, shallow_water);
+
+    // handle all collect task
+    CND_TaskManager.handleCollectItem(player, [CND_Milk_Task]);
+
+    // handle interact btn for // ! npc1
+    this.handleInteractiveBtn(
+      !isMobile && !tablet,
+      interactKey,
+      up,
+      interactButton,
+      player,
+      npc1,
+      [npc2]
+    );
+    // handle interact btn for // ! npc2
+    this.handleInteractiveBtn(
+      !isMobile && !tablet,
+      interactKey,
+      up,
+      interactButton,
+      player,
+      npc2,
+      [npc1]
+    );
+
+    // * all c&d task were done, ready to go to next scene
+    if (CND_Milk_Task._completed && !ToGate_Task._completed) {
+      let gateBox = ToGate_Task._inventoryBox[0];
+      let gate = ToGate_Task._items[0];
+      gate.gameObj.setTexture('gate-active');
+      if (gate.isOverlapWithPlayer(player)) {
+        this.scene.start('Delivery2');
+      } else {
+        this.updateItemOpacity(gateBox, gate.gameObj);
+      }
+    }
+    // * updateTextOpacity(player, target, message)
+    this.updateTextOpacity(player, this.requireNpc2, this.requireNpc2);
   }
 }
 

@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { changeSceneIf } from '../utils/changeScene';
-import enableInteractivityOnOverlap from '../utils/collisionUtils';
 
 let player;
 let up;
@@ -18,11 +17,11 @@ class Dev extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('ermine', 'src/image/_dev/playerErmine.png', {
+    this.load.spritesheet('ermine', '../../assets/image/_dev/playerErmine.png', {
       frameWidth: 500,
       frameHeight: 300,
     });
-    this.load.image('bubble', 'src/image/_dev/Bullet.png');
+    this.load.image('bubble', '../../assets/image/_dev/Bullet.png');
   }
 
   create() {
