@@ -672,26 +672,26 @@ class Delivery3 extends Phaser.Scene {
   }
 
   addAnimations() {
-    // //npc4
-    // this.anims.create({
-    //   key: "idle_npc4",
-    //   frames: this.anims.generateFrameNumbers("npc4", {
-    //     start: 0,
-    //     end: 1,
-    //   }),
-    //   frameRate: 1,
-    //   repeat: -1,
-    // });
-    // //npc5
-    // this.anims.create({
-    //   key: "idle_npc5",
-    //   frames: this.anims.generateFrameNumbers("npc5", {
-    //     start: 0,
-    //     end: 1,
-    //   }),
-    //   frameRate: 1,
-    //   repeat: -1,
-    // });
+    //npc4
+    this.anims.create({
+      key: "idle_npc4",
+      frames: this.anims.generateFrameNumbers("npc4", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 1,
+      repeat: -1,
+    });
+    //npc5
+    this.anims.create({
+      key: "idle_npc5",
+      frames: this.anims.generateFrameNumbers("npc5", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 1,
+      repeat: -1,
+    });
   }
   //adding jumppad
   addJumppad() {

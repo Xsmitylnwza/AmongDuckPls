@@ -107,7 +107,7 @@ class Summarize extends Phaser.Scene {
     //9A-DevOps
     this.load.image("DevOps1", path.join(CUTSCENE_PATH, "2-9A_Devops1.png"));
     this.load.image("DevOps2", path.join(CUTSCENE_PATH, "2-9A_Devops2.png"));
-    this.load.image("DevOps3", path.join(CUTSCENE_PATH, "2-9A_Devops3.png"))
+    this.load.image("DevOps3", path.join(CUTSCENE_PATH, "2-9A_Devops3.png"));
 
     //9B-Front End
     this.load.image("FrontEnd1", path.join(CUTSCENE_PATH, "2-9B_FD1.png"));
