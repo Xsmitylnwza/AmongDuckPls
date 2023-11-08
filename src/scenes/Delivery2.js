@@ -279,7 +279,7 @@ class Delivery2 extends Phaser.Scene {
     backgrounds.add(cloundLayer1);
   }
   //water
-  addForegroundElements(mapWidth, mapHeight) {
+  addForegroundElements(mapWidth, mapHeight) { 
     water = this.add
       .sprite(0, mapHeight - 160, "water-sprite")
       .setOrigin(0, 0)
@@ -678,26 +678,26 @@ class Delivery2 extends Phaser.Scene {
 
   //animation chest npc
   addAnimations() {
-    this.anims.create({
-      key: "chest-rotate",
-      frames: this.anims.generateFrameNumbers("chest", {
-        start: 21,
-        end: 27,
-      }),
-      frameRate: 3,
-      repeat: 0,
-    });
+    // this.anims.create({
+    //   key: "chest-rotate",
+    //   frames: this.anims.generateFrameNumbers("chest", {
+    //     start: 21,
+    //     end: 27,
+    //   }),
+    //   frameRate: 3,
+    //   repeat: 0,
+    // });
 
-    // sprite sheet for npc1
-    this.anims.create({
-      key: "idle_npc3",
-      frames: this.anims.generateFrameNumbers("npc3", {
-        start: 0,
-        end: 1,
-      }),
-      frameRate: 1,
-      repeat: -1,
-    });
+    // // sprite sheet for npc1
+    // this.anims.create({
+    //   key: "idle_npc3",
+    //   frames: this.anims.generateFrameNumbers("npc3", {
+    //     start: 0,
+    //     end: 1,
+    //   }),
+    //   frameRate: 1,
+    //   repeat: -1,
+    // });
   }
   // * update item opacity
   updateItemOpacity(item, destination) {
