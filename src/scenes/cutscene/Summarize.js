@@ -43,6 +43,7 @@ let words = [
   "WebDesign3", //25
   "WebDesign4", //! 26
 ];
+// test
 
 let lastFrames = [15, 18, 22, 26];
 
