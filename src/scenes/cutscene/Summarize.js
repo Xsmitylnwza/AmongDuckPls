@@ -31,9 +31,9 @@ let words = [
   "GameDev1", //13
   "GameDev2", //14
   "GameDev3", // ! 15
-  "Devops1", //16
-  "Devops2", //17
-  "Devops3", // ! 18
+  "DevOps1", //16
+  "DevOps2", //17
+  "DevOps3", // ! 18
   "FrontEnd1", //19
   "FrontEnd2", //20
   "FrontEnd3", //21
