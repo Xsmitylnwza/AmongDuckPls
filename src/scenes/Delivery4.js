@@ -1,13 +1,13 @@
-import Phaser from 'phaser';
-import playerMoveTemple from '../utils/playerMoveTemple';
-import { setWorldBoundsAndCamera } from '../utils/setWorldAndCameraBound';
-import { FOREGROUND_DEPTH, PLAYER_DEPTH, SKY_DEPTH } from '../utils/mapDepth';
-import { OBJECT_SCROLL } from '../utils/mapObjectScroll';
+import Phaser from "phaser";
+import playerMoveTemple from "../utils/playerMoveTemple";
+import { setWorldBoundsAndCamera } from "../utils/setWorldAndCameraBound";
+import { FOREGROUND_DEPTH, PLAYER_DEPTH, SKY_DEPTH } from "../utils/mapDepth";
+import { OBJECT_SCROLL } from "../utils/mapObjectScroll";
 import {
   MIDDLEGROUND_DEPTH,
   BACKGROUND_COMPONENT_DEPTH,
-} from '../utils/mapDepth';
-import { updateTextOpacity } from '../utils/event/updateTextOpacity'; // ! new func
+} from "../utils/mapDepth";
+import { updateTextOpacity } from "../utils/event/updateTextOpacity"; // ! new func
 
 // ! test new class for collect item
 import {
@@ -17,12 +17,13 @@ import {
   CollectableItem,
   Target,
   OverlapObject,
-} from '../utils/event/TaskManager';
+} from "../utils/event/TaskManager";
 
 const isMobile = /mobile/i.test(navigator.userAgent);
 const tablet = window.innerWidth < 1280;
 
 let camera;
+let bg;
 let backgrounds;
 let cloundLayer1;
 let cloundLayer2;
@@ -51,7 +52,7 @@ let playerEsterEgg = true;
 
 class Delivery4 extends Phaser.Scene {
   constructor() {
-    super('Delivery4');
+    super("Delivery4");
     // * new class for collect item
     /**
      * @type {CND_Task}
@@ -135,7 +136,7 @@ class Delivery4 extends Phaser.Scene {
       const posX = posX_list[0];
       const posY = keyInventoryDetails.posY || 0;
       this.physics.add
-        .image(posX, posY, 'key')
+        .image(posX, posY, "key")
         .setOrigin(0, 0)
         .setDepth(MIDDLEGROUND_DEPTH)
         .setAlpha(1)
@@ -153,7 +154,7 @@ class Delivery4 extends Phaser.Scene {
           milk.collected = true;
           milk.delivered = milkItems[i].delivered;
           milk.gameObj = this.physics.add
-            .image(posX, posY, 'milk')
+            .image(posX, posY, "milk")
             .setOrigin(0, 0)
             .setDepth(MIDDLEGROUND_DEPTH)
             .setAlpha(1)
@@ -174,7 +175,7 @@ class Delivery4 extends Phaser.Scene {
   setDeviceSpecificControls(height, width, camera) {
     //camera and control for each device
     if (isMobile || tablet) {
-      this.input.on('gameobjectdown', (pointer, gameObject) => {
+      this.input.on("gameobjectdown", (pointer, gameObject) => {
         if (gameObject === left) {
           isLeftPressed = true;
         }
@@ -186,7 +187,7 @@ class Delivery4 extends Phaser.Scene {
         }
       });
 
-      this.input.on('gameobjectup', (pointer, gameObject) => {
+      this.input.on("gameobjectup", (pointer, gameObject) => {
         if (gameObject === left) {
           isLeftPressed = false;
         }
@@ -206,12 +207,12 @@ class Delivery4 extends Phaser.Scene {
       if (isMobile) {
         //mobile
         if (screenHeight > 720) screenHeight = 720;
-        console.log('Mobile view');
+        console.log("Mobile view");
         console.log(`Screen Width: ${screenWidth}px`);
         console.log(`Screen Height: ${screenHeight}px`);
 
         left = this.physics.add
-          .sprite(screenWidth / 2 - screenWidth / 3, screenHeight / 1.2, 'left')
+          .sprite(screenWidth / 2 - screenWidth / 3, screenHeight / 1.2, "left")
           .setScale(5)
           .setSize(15, 15)
           .setInteractive()
@@ -223,7 +224,7 @@ class Delivery4 extends Phaser.Scene {
           .sprite(
             screenWidth / 2 - screenWidth / 8,
             screenHeight / 1.2,
-            'right'
+            "right"
           )
           .setScale(5)
           .setSize(15, 15)
@@ -233,7 +234,7 @@ class Delivery4 extends Phaser.Scene {
           .setScrollFactor(0);
 
         up = this.physics.add
-          .sprite(screenWidth / 2 + screenWidth / 3.5, screenHeight / 1.2, 'up')
+          .sprite(screenWidth / 2 + screenWidth / 3.5, screenHeight / 1.2, "up")
           .setScale(5)
           .setSize(15, 15)
           .setInteractive()
@@ -252,7 +253,7 @@ class Delivery4 extends Phaser.Scene {
       } else if (tablet) {
         //tablet
         if (screenHeight > 720) screenHeight = 720;
-        console.log('Tablet view');
+        console.log("Tablet view");
         console.log(`Screen Width: ${screenWidth}px`);
         console.log(`Screen Height: ${screenHeight}px`);
 
@@ -260,7 +261,7 @@ class Delivery4 extends Phaser.Scene {
           .sprite(
             screenWidth / 2 - screenWidth / 2.5,
             screenHeight / 1.2,
-            'left'
+            "left"
           )
           .setScale(7)
           .setSize(15, 15)
@@ -273,7 +274,7 @@ class Delivery4 extends Phaser.Scene {
           .sprite(
             screenWidth / 2 - screenWidth / 3.5,
             screenHeight / 1.2,
-            'right'
+            "right"
           )
           .setScale(7)
           .setSize(15, 15)
@@ -283,7 +284,7 @@ class Delivery4 extends Phaser.Scene {
           .setScrollFactor(0);
 
         up = this.physics.add
-          .sprite(screenWidth - screenWidth / 8, screenHeight / 1.2, 'up')
+          .sprite(screenWidth - screenWidth / 8, screenHeight / 1.2, "up")
           .setScale(7)
           .setSize(15, 15)
           .setInteractive()
@@ -301,30 +302,30 @@ class Delivery4 extends Phaser.Scene {
       }
     } else {
       //default (desktop)
-      console.log('desktop');
+      console.log("desktop");
       camera.setViewport(0, 0, width, height);
     }
   }
   addBackgroundElements(mapWidth, mapHeight) {
     backgrounds = this.add.group();
-    let bg = this.add
-      .tileSprite(0, 0, mapWidth, mapHeight, 'background')
+    bg = this.add
+      .tileSprite(0, 0, mapWidth, mapHeight, "background")
       .setOrigin(0, 0)
-      .setScale(1.4)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD - 0.1);
     //mid clound
     cloundLayer1 = this.add
-      .tileSprite(0, 0, mapWidth, mapHeight, 'clound-layer2')
+      .tileSprite(0, 50, mapWidth, mapHeight, "clound-layer2")
       .setOrigin(0, 0)
-      .setScale(1.4)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD);
     // front
     cloundLayer2 = this.add
-      .tileSprite(0, 0, mapWidth, mapHeight, 'clound-layer1')
+      .tileSprite(0, 60, mapWidth, mapHeight, "clound-layer1")
       .setOrigin(0, 0)
-      .setScale(1.4)
+      .setScale(1.6)
       .setDepth(SKY_DEPTH)
       .setScrollFactor(OBJECT_SCROLL.CLOUD2);
 
@@ -337,31 +338,34 @@ class Delivery4 extends Phaser.Scene {
     platforms = this.physics.add.staticGroup();
 
     let platfromladderup = this.add
-      .image(3264, 1257, 'clound-long1')
+      .image(3264, 1257, "clound-long1")
       .setOrigin(0, 0)
       .setScale(1)
+      .setAlpha(0.9)
       .setDepth(PLAYER_DEPTH + 1);
 
     let platform1 = this.add
-      .image(3007, 837, 'clound')
+      .image(3007, 837, "clound")
       .setOrigin(0, 0)
       .setScale(1)
+      .setAlpha(0.9)
       .setDepth(PLAYER_DEPTH + 1);
 
     let platform2 = this.add
-      .image(2157, 455, 'clound-long2')
+      .image(2157, 455, "clound-long2")
       .setOrigin(0, 0)
       .setScale(1)
+      .setAlpha(0.9)
       .setDepth(PLAYER_DEPTH + 1);
 
     let platoform3 = this.add
-      .image(1404, 905, 'clound-long1')
+      .image(1404, 905, "clound-long1")
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(PLAYER_DEPTH + 1);
 
     let ladderup = this.add
-      .image(3622, 1319, 'ladder')
+      .image(3622, 1319, "ladder")
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(PLAYER_DEPTH + 1);
@@ -392,7 +396,7 @@ class Delivery4 extends Phaser.Scene {
   addPlayerAndCollider() {
     //player
     player = this.physics.add
-      .sprite(3622, 1319, 'player')
+      .sprite(3622, 1319, "player")
       .setCollideWorldBounds(true)
       .setScale(0.3)
       .setSize(180, 200)
@@ -402,13 +406,13 @@ class Delivery4 extends Phaser.Scene {
   }
   addJumpPad() {
     jumppad1 = this.add
-      .image(3309, 1370, 'jumppad1')
+      .image(3309, 1370, "jumppad1")
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(FOREGROUND_DEPTH);
     //change depth to Player_depth for hiding it, because platform is player_depth + 1
     jumppad2 = this.add
-      .image(3041, 900, 'jumppad1')
+      .image(3041, 900, "jumppad1")
       .setOrigin(0, 0)
       .setScale(1)
       .setDepth(FOREGROUND_DEPTH);
@@ -416,7 +420,7 @@ class Delivery4 extends Phaser.Scene {
 
   addMessageEasterEgg() {
     this.rigroll = this.add
-      .image(0, 1286, 'rigroll')
+      .image(0, 1286, "rigroll")
       .setOrigin(0, 0)
       .setScale(1)
       .setAlpha(0)
@@ -424,6 +428,7 @@ class Delivery4 extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(500);
     //config
     const { width, height } = this.scale;
     // main scale
@@ -456,7 +461,7 @@ class Delivery4 extends Phaser.Scene {
     //player
     this.addPlayerAndCollider();
     //jumppad
-    this.addJumpPad();
+    // this.addJumpPad();
 
     //message easter egg
     this.addMessageEasterEgg();
@@ -467,19 +472,24 @@ class Delivery4 extends Phaser.Scene {
     // start temple scene
     // this.scene.start('Temple'); //!dev mode
 
+    bg.tilePositionX += 0.03;
+    cloundLayer1.tilePositionX += 0.07;
+    cloundLayer2.tilePositionX += 0.1;
+
     //player movement
     if (isMobile || tablet) {
       this.playerMoveTemple(
         player,
-        500,
+        350,
         false,
         true,
         isLeftPressed,
         isRightPressed,
-        isUpPressed
+        isUpPressed,
+        250
       );
     } else {
-      this.playerMoveTemple(player, 1000, false, false, null, null, null);
+      this.playerMoveTemple(player, 350, false, false, null, null, null, 250);
     }
 
     //camera follow player
@@ -497,9 +507,10 @@ class Delivery4 extends Phaser.Scene {
         .setPosition(posX, posY)
         .setScale(scale)
         .setScrollFactor(0);
+      this.sound.add("collected").play();
     }
 
-    // ? ester egg
+    // ? easter egg
     if (playerEsterEgg) {
       this.updateTextOpacity(player, { x: 1000, y: 1200 }, this.rigroll);
     } else {
@@ -526,7 +537,7 @@ class Delivery4 extends Phaser.Scene {
         ],
         npc: [this.npc4, this.npc5],
       };
-      this.scene.start('Delivery3', gameContext);
+      this.scene.start("Delivery3", gameContext);
     }
   }
 }
