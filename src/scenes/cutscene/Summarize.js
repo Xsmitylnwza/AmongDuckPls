@@ -50,8 +50,6 @@ let currentFrameIndex = 0;
 let delayText = 4500;
 let frame;
 
-let buttons;
-
 let bg;
 let cloundLayer1;
 let cloundLayer2;
